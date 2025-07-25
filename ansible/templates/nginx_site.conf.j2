@@ -1,0 +1,43 @@
+server {
+    listen {{ nginx_port }};
+    listen [::]:{{ nginx_port }};
+    
+    server_name {{ ansible_host }} {{ ansible_hostname }};
+    
+    root /var/www/demo;
+    index index.html index.htm;
+    
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
+    add_header Content-Security-Policy "default-src 'self' 'unsafe-inline' 'unsafe-eval';" always;
+    
+    # Gzip compression
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css text/xml text/javascript application/javascript application/xml+rss application/json;
+    
+    location / {
+        try_files $uri $uri/ =404;
+    }
+    
+    # Cache static assets
+    location ~* \.(jpg|jpeg|png|gif|ico|css|js)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+    
+    # Security: deny access to hidden files
+    location ~ /\. {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+    
+    # Logging
+    access_log /var/log/nginx/demo_access.log;
+    error_log /var/log/nginx/demo_error.log;
+}
