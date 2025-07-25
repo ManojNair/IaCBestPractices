@@ -2,6 +2,7 @@
 # Provides isolated network environment for VMs
 
 terraform {
+  required_version = ">= 1.0"
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
@@ -32,7 +33,7 @@ resource "azurerm_subnet" "vm_subnet" {
 locals {
   vnet_name   = "vnet-${var.workload}-${var.environment}-${var.location_short}-${format("%03d", var.instance)}"
   subnet_name = "snet-${var.workload}-${var.environment}-${var.location_short}-${format("%03d", var.instance)}"
-  
+
   all_tags = merge(
     var.common_tags,
     {

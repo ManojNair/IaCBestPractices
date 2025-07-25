@@ -13,7 +13,7 @@ terraform {
     resource_group_name  = "rg-terraform-state-prod"
     storage_account_name = "sttfstateprod001"
     container_name       = "tfstate"
-    key                 = "environments/prod/terraform.tfstate"
+    key                  = "environments/prod/terraform.tfstate"
   }
 }
 
@@ -28,23 +28,23 @@ module "shared_config" {
 
 locals {
   environment = "prod"
-  
+
   # Production-specific overrides
   prod_overrides = {
-    enable_diagnostics     = true   # Enable comprehensive logging
-    enable_ddos_protection = true   # Enhanced security
-    log_retention_days     = 365    # Compliance requirement
-    backup_retention_days  = 30     # Extended backup retention
+    enable_diagnostics     = true # Enable comprehensive logging
+    enable_ddos_protection = true # Enhanced security
+    log_retention_days     = 365  # Compliance requirement
+    backup_retention_days  = 30   # Extended backup retention
   }
-  
+
   config = merge(module.shared_config.environment_settings[local.environment], local.prod_overrides)
 }
 
 # Resource Group with enhanced protection
 resource "azurerm_resource_group" "main" {
-  name     = "rg-\${module.shared_config.name_prefix}-001"
+  name     = "rg-${module.shared_config.name_prefix}-001"
   location = var.location
-  
+
   tags = merge(module.shared_config.common_tags, {
     Purpose     = "production-environment"
     Criticality = "high"
@@ -52,17 +52,17 @@ resource "azurerm_resource_group" "main" {
   })
 
   lifecycle {
-    prevent_destroy = true  # Protect production resources
+    prevent_destroy = true # Protect production resources
   }
 }
 
 # Production-grade Key Vault with enhanced security
 resource "azurerm_key_vault" "main" {
-  name                = "kv-\${var.workload}-\${local.environment}-\${random_id.suffix.hex}"
+  name                = "kv-${var.workload}-${local.environment}-${random_id.suffix.hex}"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"  # Premium for HSM protection
+  sku_name            = "premium" # Premium for HSM protection
 
   # Production security settings
   enable_rbac_authorization       = true
@@ -75,7 +75,7 @@ resource "azurerm_key_vault" "main" {
   network_acls {
     default_action = "Deny"
     bypass         = "AzureServices"
-    
+
     # Restrict access to specific IP ranges
     ip_rules = var.allowed_ip_ranges
   }
@@ -86,16 +86,16 @@ resource "azurerm_key_vault" "main" {
 # Production VMs with high availability
 resource "azurerm_linux_virtual_machine" "main" {
   count = local.config.vm_count
-  
-  name                = "vm-\${module.shared_config.name_prefix}-\${format("%03d", count.index + 1)}"
+
+  name                = "vm-${module.shared_config.name_prefix}-${format("%03d", count.index + 1)}"
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
   size                = local.config.vm_size
   admin_username      = "azureuser"
-  
+
   # Production security settings
   disable_password_authentication = true
-  zone                           = local.config.availability_zones[count.index % length(local.config.availability_zones)]
+  zone                            = local.config.availability_zones[count.index % length(local.config.availability_zones)]
 
   network_interface_ids = [
     azurerm_network_interface.main[count.index].id,
@@ -107,8 +107,8 @@ resource "azurerm_linux_virtual_machine" "main" {
   }
 
   os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = local.config.disk_type
+    caching                = "ReadWrite"
+    storage_account_type   = local.config.disk_type
     disk_encryption_set_id = azurerm_disk_encryption_set.main.id
   }
 
@@ -120,7 +120,7 @@ resource "azurerm_linux_virtual_machine" "main" {
   }
 
   tags = merge(module.shared_config.common_tags, {
-    Purpose = "production-vm"
+    Purpose       = "production-vm"
     BackupEnabled = local.config.backup_enabled
   })
 }
@@ -128,8 +128,8 @@ resource "azurerm_linux_virtual_machine" "main" {
 # Production network interfaces (no public IPs)
 resource "azurerm_network_interface" "main" {
   count = local.config.vm_count
-  
-  name                = "nic-\${module.shared_config.name_prefix}-\${format("%03d", count.index + 1)}"
+
+  name                = "nic-${module.shared_config.name_prefix}-${format("%03d", count.index + 1)}"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
 
@@ -145,7 +145,7 @@ resource "azurerm_network_interface" "main" {
 
 # Disk encryption for production compliance
 resource "azurerm_disk_encryption_set" "main" {
-  name                = "des-\${module.shared_config.name_prefix}-001"
+  name                = "des-${module.shared_config.name_prefix}-001"
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
   key_vault_key_id    = azurerm_key_vault_key.main.id
@@ -199,11 +199,11 @@ data "azurerm_client_config" "current" {}
 # Reference foundation stack
 data "terraform_remote_state" "foundation" {
   backend = "azurerm"
-  
+
   config = {
     resource_group_name  = "rg-terraform-state-prod"
     storage_account_name = "sttfstateprod001"
     container_name       = "tfstate"
-    key                 = "foundation/terraform.tfstate"
+    key                  = "foundation/terraform.tfstate"
   }
 }

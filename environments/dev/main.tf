@@ -44,29 +44,29 @@ data "http" "current_ip" {
 
 # Common locals
 locals {
-  environment     = "dev"
+  environment    = "dev"
   workload       = "webserver"
   location       = "Australia East"
   location_short = "aue"
-  
+
   # Get SSH public key
   ssh_public_key = file("~/.ssh/terraform-demo/id_rsa.pub")
-  
+
   # Allow SSH from current public IP only (security best practice)
   # If external IP detection fails, manually replace with your public IP
   current_ip = "${chomp(data.http.current_ip.response_body)}/32"
   # Manual override (uncomment and use if data source fails):
   # current_ip = "YOUR_PUBLIC_IP_HERE/32"
-  
+
   # Common tags
   common_tags = {
-    Environment   = local.environment
-    Workload      = local.workload
-    ManagedBy     = "terraform"
-    Owner         = "devops-team"
-    CostCenter    = "development"
-    Project       = "terraform-workshop"
-    CreatedDate   = formatdate("YYYY-MM-DD", timestamp())
+    Environment = local.environment
+    Workload    = local.workload
+    ManagedBy   = "terraform"
+    Owner       = "devops-team"
+    CostCenter  = "development"
+    Project     = "terraform-workshop"
+    CreatedDate = formatdate("YYYY-MM-DD", timestamp())
   }
 }
 
@@ -80,33 +80,33 @@ resource "azurerm_resource_group" "main" {
 # Network Security Group Module
 module "nsg" {
   source = "../../modules/networking/nsg"
-  
+
   name_prefix         = local.workload
   environment         = local.environment
   location            = local.location
   resource_group_name = azurerm_resource_group.main.name
-  
+
   allowed_ssh_ips = [local.current_ip]
   allow_http      = true
   allow_https     = true
-  
+
   tags = local.common_tags
 }
 
 # Virtual Network Module
 module "vnet" {
   source = "../../modules/networking/vnet"
-  
+
   workload            = local.workload
   environment         = local.environment
   location            = local.location
   location_short      = local.location_short
   instance            = 1
   resource_group_name = azurerm_resource_group.main.name
-  
+
   vnet_cidr   = "10.0.0.0/16"
   subnet_cidr = "10.0.1.0/24"
-  
+
   common_tags = local.common_tags
 }
 
@@ -119,22 +119,22 @@ resource "azurerm_subnet_network_security_group_association" "main" {
 # Virtual Machine Module
 module "ubuntu_vm" {
   source = "../../modules/compute/vm"
-  
+
   workload            = local.workload
   environment         = local.environment
   location            = local.location
   location_short      = local.location_short
   instance            = 1
   resource_group_name = azurerm_resource_group.main.name
-  
+
   subnet_id        = module.vnet.subnet_id
   admin_username   = "azureuser"
   ssh_public_key   = local.ssh_public_key
   enable_public_ip = true
-  
+
   vm_size      = "Standard_B2s"
   os_disk_type = "Premium_LRS"
-  
+
   # Cloud-init script for web server setup
   custom_data = <<-EOT
     #!/bin/bash
@@ -157,6 +157,6 @@ module "ubuntu_vm" {
     </html>
     HTML
   EOT
-  
+
   common_tags = local.common_tags
 }

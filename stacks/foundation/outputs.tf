@@ -54,9 +54,9 @@ output "web_nsg_id" {
 output "stack_info" {
   description = "Foundation stack metadata"
   value = {
-    name         = "foundation"
-    version      = "1.0.0"
-    location     = var.location
-    environment  = var.environment
+    name        = "foundation"
+    version     = "1.0.0"
+    location    = var.location
+    environment = var.environment
   }
 }
