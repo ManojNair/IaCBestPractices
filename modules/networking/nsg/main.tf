@@ -1,3 +1,16 @@
+# Network Security Group Module
+# Provides network-level security controls
+
+terraform {
+  required_version = ">= 1.0"
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.0"
+    }
+  }
+}
+
 # Network Security Group for Ubuntu VM
 resource "azurerm_network_security_group" "main" {
   name                = local.nsg_name
@@ -68,7 +81,7 @@ resource "azurerm_network_security_group" "main" {
 # Associate NSG with subnet
 resource "azurerm_subnet_network_security_group_association" "main" {
   count = var.associate_with_subnet ? 1 : 0
-  
+
   subnet_id                 = var.subnet_id
   network_security_group_id = azurerm_network_security_group.main.id
 }

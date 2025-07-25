@@ -2,6 +2,7 @@
 # Implements immutable infrastructure principles
 
 terraform {
+  required_version = ">= 1.0"
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
@@ -29,7 +30,7 @@ resource "azurerm_network_interface" "main" {
 # Public IP (conditional)
 resource "azurerm_public_ip" "main" {
   count = var.enable_public_ip ? 1 : 0
-  
+
   name                = local.pip_name
   resource_group_name = var.resource_group_name
   location            = var.location
@@ -77,7 +78,7 @@ resource "azurerm_linux_virtual_machine" "main" {
   tags = local.all_tags
 
   lifecycle {
-    create_before_destroy = true  # Immutable infrastructure principle
+    create_before_destroy = true # Immutable infrastructure principle
   }
 }
 
@@ -86,7 +87,7 @@ locals {
   vm_name  = "vm-${var.workload}-${var.environment}-${var.location_short}-${format("%03d", var.instance)}"
   nic_name = "nic-${var.workload}-${var.environment}-${var.location_short}-${format("%03d", var.instance)}"
   pip_name = "pip-${var.workload}-${var.environment}-${var.location_short}-${format("%03d", var.instance)}"
-  
+
   all_tags = merge(
     var.common_tags,
     {

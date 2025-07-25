@@ -1,3 +1,16 @@
+# Multi-Stack Infrastructure Configuration
+# Combines multiple infrastructure stacks
+
+terraform {
+  required_version = ">= 1.0"
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.0"
+    }
+  }
+}
+
 locals {
   # Environment-specific configurations
   environment_config = {
@@ -20,7 +33,7 @@ locals {
       auto_shutdown   = false
     }
   }
-  
+
   # Current environment configuration
   current_config = local.environment_config[var.environment]
 }

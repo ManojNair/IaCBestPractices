@@ -15,7 +15,7 @@ terraform {
     resource_group_name  = var.state_resource_group_name
     storage_account_name = var.state_storage_account_name
     container_name       = "tfstate"
-    key                 = "foundation/terraform.tfstate"
+    key                  = "foundation/terraform.tfstate"
   }
 }
 
@@ -26,18 +26,18 @@ provider "azurerm" {
 # Local values for stack-wide configuration
 locals {
   # Stack metadata
-  stack_name = "foundation"
+  stack_name    = "foundation"
   stack_version = "1.0.0"
-  
+
   # Naming convention
   name_prefix = "${var.organization}-${var.workload}-${var.environment}"
-  
+
   # Common tags applied to all resources in this stack
   common_tags = merge(var.common_tags, {
-    Stack         = local.stack_name
-    StackVersion  = local.stack_version
-    ManagedBy     = "terraform"
-    LastModified  = timestamp()
+    Stack        = local.stack_name
+    StackVersion = local.stack_version
+    ManagedBy    = "terraform"
+    LastModified = timestamp()
   })
 }
 
@@ -45,13 +45,13 @@ locals {
 resource "azurerm_resource_group" "foundation" {
   name     = "rg-${local.name_prefix}-foundation-001"
   location = var.location
-  
+
   tags = merge(local.common_tags, {
     Purpose = "foundation-infrastructure"
   })
 
   lifecycle {
-    prevent_destroy = true  # Protect critical foundation resources
+    prevent_destroy = true # Protect critical foundation resources
   }
 }
 
@@ -74,7 +74,7 @@ resource "azurerm_subnet" "web_tier" {
 }
 
 resource "azurerm_subnet" "app_tier" {
-  name                 = "snet-app-${var.environment}-001" 
+  name                 = "snet-app-${var.environment}-001"
   resource_group_name  = azurerm_resource_group.foundation.name
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = [var.app_subnet_cidr]

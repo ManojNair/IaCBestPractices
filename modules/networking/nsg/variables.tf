@@ -21,7 +21,7 @@ variable "resource_group_name" {
 variable "allowed_ssh_ips" {
   description = "List of IP addresses allowed for SSH access"
   type        = list(string)
-  default     = ["0.0.0.0/0"]  # Restrict this in production!
+  default     = ["0.0.0.0/0"] # Restrict this in production!
 }
 
 variable "allow_http" {
