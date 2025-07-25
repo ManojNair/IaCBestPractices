@@ -115,9 +115,11 @@ func TestIndividualModulesValidation(t *testing.T) {
                 Vars:         module.vars,
             }
 
-            // Initialize and validate the module
+            // Initialize and validate the module (syntax only)
             terraform.Init(t, terraformOptions)
-            terraform.Validate(t, terraformOptions)
+            
+            // For syntax validation, we just need to run validate without vars
+            terraform.RunTerraformCommand(t, &terraform.Options{TerraformDir: module.path}, "validate")
             
             t.Logf("✅ %s", module.description)
         })
